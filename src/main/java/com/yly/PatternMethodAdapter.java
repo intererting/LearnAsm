@@ -1,9 +1,6 @@
 package com.yly;
 
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.*;
 
 import java.io.IOException;
 
@@ -31,11 +28,72 @@ public abstract class PatternMethodAdapter extends MethodVisitor {
         super(api, methodVisitor);
     }
 
+    @Override
+    public void visitInsn(int opcode) {
+        visitInsn();
+        mv.visitInsn(opcode);
+    }
+
     //BIPUSH, SIPUSH,NEWARRAY
 //    @Override
-//    public void visitIntInsn(int opcode, int operand) {
-//        mv.visitIntInsn(opcode, operand);
-//    }
+    public void visitIntInsn(int opcode, int operand) {
+        visitInsn();
+        mv.visitIntInsn(opcode, operand);
+    }
+
+    @Override
+    public void visitFrame(int type, int numLocal, Object[] local, int numStack, Object[] stack) {
+        visitInsn();
+        mv.visitFrame(type, numLocal, local, numStack, stack);
+    }
+
+    @Override
+    public void visitLabel(Label label) {
+        visitInsn();
+        mv.visitLabel(label);
+    }
+
+    @Override
+    public void visitMaxs(int maxStack, int maxLocals) {
+        visitInsn();
+        mv.visitMaxs(maxStack, maxLocals);
+    }
+
+    protected abstract void visitInsn();
+}
+
+class RemoveZeroMethodVisitor extends PatternMethodAdapter {
+
+    private final static int SEEN_ICONST_0 = 1;
+
+    public RemoveZeroMethodVisitor(MethodVisitor methodVisitor) {
+        super(ASM9, methodVisitor);
+    }
+
+    @Override
+    public void visitInsn(int opcode) {
+        if (state == SEEN_ICONST_0) {
+            if (opcode == IADD) {
+                state = SEEN_NOTHING;
+                return;
+            }
+        }
+        visitInsn();
+        if (opcode == ICONST_0) {
+            state = SEEN_ICONST_0;
+            return;
+        }
+
+        mv.visitInsn(opcode);
+    }
+
+    @Override
+    protected void visitInsn() {
+        if (state == SEEN_ICONST_0) {
+            mv.visitInsn(ICONST_0);
+        }
+        state = SEEN_NOTHING;
+    }
 }
 
 class RemoveZeroClassVisitor extends ClassVisitor {
@@ -54,26 +112,3 @@ class RemoveZeroClassVisitor extends ClassVisitor {
     }
 }
 
-class RemoveZeroMethodVisitor extends PatternMethodAdapter {
-
-    private final static int SEEN_ICONST_0 = 1;
-
-    public RemoveZeroMethodVisitor(MethodVisitor methodVisitor) {
-        super(ASM9, methodVisitor);
-    }
-
-    @Override
-    public void visitInsn(int opcode) {
-        if (opcode == ICONST_0 && state == SEEN_NOTHING) {
-            state = SEEN_ICONST_0;
-            return;
-        }
-        if (state == SEEN_ICONST_0) {
-            if (opcode == IADD) {
-                state = SEEN_NOTHING;
-                return;
-            }
-        }
-        mv.visitInsn(opcode);
-    }
-}
