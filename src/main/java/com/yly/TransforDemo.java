@@ -16,9 +16,9 @@ public class TransforDemo {
 
         try {
 //            testRemoveName();
-//            testChangeName();
+            testChangeName();
 //            testAddField();
-            testAddMethod();
+//            testAddMethod();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -59,7 +59,8 @@ public class TransforDemo {
         byte[] data = writer.toByteArray();
         //名字已经被修改
         Class clazz = classLoader.defineClass("com.yly.Changed", data);
-        System.out.println(clazz.getDeclaredField("name").get(null));
+//        Utils.copyClassToFile("com/yly", "Person.class", data);
+//        System.out.println(clazz.getDeclaredField("name").get(null));
     }
 
 }

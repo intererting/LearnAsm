@@ -37,8 +37,8 @@ public class ClassWriterDemo {
                 , "pkg/Comparable"
                 , null,
                 "java/lang/Object",
-                new String[]{"pkg/Measurable"});
-
+                null);
+//        new String[]{"pkg/Measurable"}
         /*
          *   final int access,
          *       final String name,
@@ -72,13 +72,14 @@ public class ClassWriterDemo {
 
         byte[] data = classWriter.toByteArray();
 
+//        Utils.copyClassToFile("pkg", "Comparable.class", data);
         //自定义ClassLoader加载
-//        MyClassLoader myClassLoader = new MyClassLoader();
-//        Class c = myClassLoader.defineClass("pkg.Comparable", data);
-//        try {
-//            System.out.println(c.getDeclaredField("LEVEL").get(null));
-//        } catch (NoSuchFieldException | IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
+        MyClassLoader myClassLoader = new MyClassLoader();
+        Class c = myClassLoader.defineClass("pkg.Comparable", data);
+        try {
+            System.out.println(c.getDeclaredField("LEVEL").get(null));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 }

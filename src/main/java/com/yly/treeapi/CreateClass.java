@@ -1,5 +1,7 @@
 package com.yly.treeapi;
 
+import com.yly.Utils;
+import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -50,5 +52,10 @@ public class CreateClass {
         );
 
         classNode.methods.add(methodNode);
+
+        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        classNode.accept(classWriter);
+        Utils.copyClassToFile("com/yly", "TreeApi.class", classWriter.toByteArray());
+
     }
 }
