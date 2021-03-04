@@ -14,6 +14,10 @@ public class TreeModel {
     }
 
     public void setF(int f) {
-        this.f = f;
+        if (f >= 0) {
+            this.f = f;
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 }

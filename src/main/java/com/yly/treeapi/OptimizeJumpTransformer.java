@@ -7,7 +7,6 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.*;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -21,12 +20,11 @@ public class OptimizeJumpTransformer {
         InsnList insns = mn.instructions;
         for (AbstractInsnNode in : insns) {
             if (in instanceof JumpInsnNode) {
-                // 初始化label
                 LabelNode label = ((JumpInsnNode) in).label;
                 AbstractInsnNode target;
-                // 循环调用，将goto XX 中的XX跳转地址记录在label变量中
+// while target == goto l, replace label with l
                 while (true) {
-                    target = label;   // 跳转过滤掉FrameNode 和LabelNode
+                    target = label;
                     while (target != null && target.getOpcode() < 0) {
                         target = target.getNext();
                     }
@@ -36,13 +34,13 @@ public class OptimizeJumpTransformer {
                         break;
                     }
                 }
-                // 更新替换label的值(实际跳转地址)
-//                ((JumpInsnNode) in).label = label;
-//                // 如果指令是goto ,并且新的跳转的目标指令是ARETURN 指令，那么就将当前的指令替换成这个return指令的一个clone对象
+// update target
+                ((JumpInsnNode) in).label = label;
+// if possible, replace jump with target instruction
                 if (in.getOpcode() == Opcodes.GOTO && target != null) {
                     int op = target.getOpcode();
                     if ((op >= Opcodes.IRETURN && op <= Opcodes.RETURN) || op == Opcodes.ATHROW) {
-                        // replace ’in’ with clone of ’target’
+// replace ’in’ with clone of ’target’
                         insns.set(in, target.clone(null));
                     }
                 }
@@ -57,7 +55,7 @@ public class OptimizeJumpTransformer {
         OptimizeJumpTransformer at = new OptimizeJumpTransformer();
         List<MethodNode> methodNodes = cn.methods;
         for (MethodNode mn : methodNodes) {
-            if (mn.name.equals("addEspresso")) {
+            if (mn.name.equals("setF")) {
                 at.transform(mn);
             }
         }
